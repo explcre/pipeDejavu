@@ -1,5 +1,11 @@
 # pipeDejavu
 
+## How to run the code
+```
+python simulate_random_initialization_parallel.py --to_demo False --num_workers 8 --epochs 100 --demo_epochs 20
+```
+
+
 # hardware-aware scheduling
 
 googledoc:[https://docs.google.com/document/d/1qON658QVbS2n_xLyuYeIiXB8Oqp0kjT4eKmmuKapV2A/edit?usp=sharing](https://docs.google.com/document/d/1qON658QVbS2n_xLyuYeIiXB8Oqp0kjT4eKmmuKapV2A/edit?usp=sharing)
