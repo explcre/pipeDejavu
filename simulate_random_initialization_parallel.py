@@ -18,6 +18,15 @@ import matplotlib.pyplot as plt
 import os
 from tqdm import tqdm
 import datetime
+#from datetime import datetime
+import csv
+from datetime import datetime
+
+results_dir = './results'
+def nowTimetoString():
+    now=datetime.now()
+    return now.strftime("%m-%d-%Y_%H-%M-%S")
+
 class SimpleNN(nn.Module):
     def __init__(self, to_demo=True):
         super(SimpleNN, self).__init__()
@@ -252,20 +261,27 @@ def run_simulation(num_workers, sampling_method, train_loader, device, num_epoch
         losses.append(loss_curve)
     return losses
 '''
-def to_csv(data):
-    with open('table1.csv', 'w', newline='') as file:
+def to_csv(data,num_epochs):
+    if not os.path.exists(results_dir):
+        os.makedirs(results_dir)
+    nowTimeString=nowTimetoString()
+
+    with open(os.path.join(results_dir,nowTimeString+'table1.csv'), 'w', newline='') as file:
         writer = csv.writer(file)
-        header = ['Method', 'Iteration 1', 'Iteration 2', 'Iteration 3', 'Iteration 4', 'Iteration 5', 'Iteration 6', 'Iteration 7', 'Iteration 8', 'Iteration 9', 'Iteration 10', 'Iteration 11', 'Iteration 12', 'Iteration 13', 'Iteration 14', 'Iteration 15', 'Iteration 16', 'Iteration 17', 'Iteration 18', 'Iteration 19', 'Iteration 20', 'Iteration 21', 'Iteration 22', 'Iteration 23', 'Iteration 24', 'Iteration 25', 'Iteration 26', 'Iteration 27', 'Iteration 28', 'Iteration 29', 'Iteration 30']
+        header = ['Method']#, 'Iteration 1', 'Iteration 2', 'Iteration 3', 'Iteration 4', 'Iteration 5', 'Iteration 6', 'Iteration 7', 'Iteration 8', 'Iteration 9', 'Iteration 10', 'Iteration 11', 'Iteration 12', 'Iteration 13', 'Iteration 14', 'Iteration 15', 'Iteration 16', 'Iteration 17', 'Iteration 18', 'Iteration 19', 'Iteration 20', 'Iteration 21', 'Iteration 22', 'Iteration 23', 'Iteration 24', 'Iteration 25', 'Iteration 26', 'Iteration 27', 'Iteration 28', 'Iteration 29', 'Iteration 30']
+        for i in range(num_epochs):
+            header.append("Epoch"+str(i+1))
 
         writer.writerow(header)
 
         for method in data:
-            row = [method]
             for i in range(len(data[method])):
+                row = [method+" worker"+str(i+1)]
                 row += [str(num) for num in data[method][i]]
-            writer.writerow(row)
+                writer.writerow(row)
 
-def main(to_demo=True):
+
+def main(to_demo=True,NUM_WORKERS_=20,EPOCHS=100,DEMO_EPOCHS=50):
         # Prepare the dataset
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     #device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -279,11 +295,11 @@ def main(to_demo=True):
     train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
     if to_demo:
         train_dataset, _ = torch.utils.data.random_split(train_dataset, [1000, len(train_dataset) - 1000])
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)#, num_workers=2
-    NUM_WORKERS_= 4
+    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=2)#, num_workers=2
+    #NUM_WORKERS_= 4
     num_workers = NUM_WORKERS_
     
-    num_epochs = 30 if to_demo else 50 #30
+    num_epochs = DEMO_EPOCHS if to_demo else EPOCHS #30
     # Define sampling methods
     def single_random_initialization():
         model = SimpleNN()
@@ -415,7 +431,7 @@ def main(to_demo=True):
         losses[method_name] = loss_curve
 
     print(losses)
-    to_csv(losses)
+    to_csv(losses,num_epochs)
     # Plot loss curves
     plt.figure(figsize=(12, 6))
     for method_name, loss_curve in losses.items():
@@ -431,8 +447,9 @@ def main(to_demo=True):
     results_dir = './results'
     if not os.path.exists(results_dir):
         os.makedirs(results_dir)
-
-    plt.savefig(os.path.join(results_dir, datetime.date.today().strftime("%B %d, %Y") + 'loss_curves.png'))
+        
+    now=datetime.now()
+    plt.savefig(os.path.join(results_dir, now.strftime("%m-%d-%Y_%H-%M-%S")+ 'loss_curves.png'))
     plt.show()
 
 
@@ -463,4 +480,4 @@ def main():
         print(f"Mean loss for {name}: {mean_loss}")
 '''
 if __name__ == "__main__":
-    main(to_demo=False)
+    main(to_demo=True,NUM_WORKERS_=40,EPOCHS=50,DEMO_EPOCHS=300)
