@@ -281,6 +281,7 @@ def main(to_demo=True):
 
     def uniform_sampling():
         return [np.random.uniform(-1, 1, p.numel()).reshape(p.shape) for p in SimpleNN().parameters()]
+    
     def latin_hypercube_sampling():
         n_params = sum(p.numel() for p in SimpleNN().parameters())
         lhs_samples = pyDOE2.lhs(n_params, samples=num_workers, criterion='maximin')
@@ -393,6 +394,7 @@ def main(to_demo=True):
         loss_curve = run_simulation(num_workers, init_values, train_loader, device, num_epochs,to_demo)
         losses[method_name] = loss_curve
 
+    print(losses)
     # Plot loss curves
     plt.figure(figsize=(12, 6))
     for method_name, loss_curve in losses.items():
