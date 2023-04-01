@@ -271,7 +271,7 @@ def main(to_demo=True):
     NUM_WORKERS_= 4
     num_workers = NUM_WORKERS_
     
-    num_epochs = 10 if to_demo else 50 #30
+    num_epochs = 30 if to_demo else 50 #30
     # Define sampling methods
     def single_random_initialization():
         model = SimpleNN()
@@ -377,9 +377,9 @@ def main(to_demo=True):
     methods = [
         ('Single Random Initialization', single_random_initialization),
         ('Uniform Sampling', uniform_sampling),
-        ('Adaptive Sampling', adaptive_sampling),
-        ('Bayesian Optimization', bayesian_optimization),
-        ('LHS', latin_hypercube_sampling),
+        #('Adaptive Sampling', adaptive_sampling),
+        #('Bayesian Optimization', bayesian_optimization),
+        #('LHS', latin_hypercube_sampling),
     ]
 
     losses = {}
@@ -393,24 +393,24 @@ def main(to_demo=True):
         loss_curve = run_simulation(num_workers, init_values, train_loader, device, num_epochs,to_demo)
         losses[method_name] = loss_curve
 
-        #Plot loss curves
-        plt.figure(figsize=(12, 6))
-
+    # Plot loss curves
+    plt.figure(figsize=(12, 6))
+    for method_name, loss_curve in losses.items():
         plt.plot(loss_curve, label=method_name)
 
-        plt.xlabel('Epoch')
-        plt.ylabel('Loss')
-        plt.title('Loss Curves for Different Initialization Methods')
-        plt.legend()
-        plt.grid()
-        plt.show()
-        results_dir = './results'
-        if not os.path.exists(results_dir):
-            os.makedirs(results_dir)
-        
-        
-        plt.savefig(os.path.join(results_dir, datetime.date.today().strftime("%B %d, %Y")+method_name+'loss_curves.png'))
-        plt.show()
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.title('Loss Curves for Different Initialization Methods')
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+    results_dir = './results'
+    if not os.path.exists(results_dir):
+        os.makedirs(results_dir)
+
+    plt.savefig(os.path.join(results_dir, datetime.date.today().strftime("%B %d, %Y") + 'loss_curves.png'))
+    plt.show()
 
 
 '''
