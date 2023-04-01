@@ -79,9 +79,6 @@ class SimpleNN(nn.Module,to_demo=True):
         self.relu3 = nn.ReLU(inplace=True)
         self.fc2 = nn.Linear(128, 10)
 
-        
-
-
     def forward(self, x):
         x = self.conv1(x)
         x = self.relu1(x)
@@ -159,7 +156,9 @@ def init_weights(model):
 '''
 def init_weights(model, init_values):
     for i, param in enumerate(model.parameters()):
-        param.data.copy_(torch.tensor(init_values[i]))
+        param.data.copy_(torch.from_numpy(init_values[i]))
+
+        #param.data.copy_(torch.tensor(init_values[i]))
 
 
 # SimpleNN and init_weights remain the same as before
@@ -184,6 +183,16 @@ def simulate_parallel_loss(model, init_values, train_loader, device, num_epochs=
         loss_curve.append(running_loss / len(train_loader))
     return loss_curve
 
+'''
+def run_simulation(num_workers, init_values_list, train_loader, device, num_epochs=10, to_demo=True):
+    losses = []
+    for worker_id in range(num_workers):
+        init_values = init_values_list[worker_id]
+        loss_curve = simulate_parallel_loss(SimpleNN(to_demo=to_demo), init_values, train_loader, device, num_epochs)
+        losses.append(loss_curve)
+    return losses
+'''
+#originally work version
 def run_simulation(num_workers,init_values, train_loader, device, num_epochs=10,to_demo=True):#original 2nd argument:sampling_method
     losses = []
     for worker_id in range(num_workers):
@@ -266,18 +275,72 @@ def main(to_demo=True):
     # Define sampling methods
     def single_random_initialization():
         model = SimpleNN()
-        init_values = [p.data.clone() for p in model.parameters()]
+        init_values = [p.data.clone().numpy() for p in model.parameters()]# originally no .numpy()
         return init_values
+
 
     def uniform_sampling():
         return [np.random.uniform(-1, 1, p.numel()).reshape(p.shape) for p in SimpleNN().parameters()]
-
     def latin_hypercube_sampling():
         n_params = sum(p.numel() for p in SimpleNN().parameters())
         lhs_samples = pyDOE2.lhs(n_params, samples=num_workers, criterion='maximin')
         lhs_samples = lhs_samples * 2 - 1  # scale to [-1, 1]
-        return [list(sample.reshape((1, -1))) for sample in lhs_samples]
+        
+        init_values_list = []
+        for sample in lhs_samples:
+            init_values = []
+            start_index = 0
+            for p in SimpleNN().parameters():
+                end_index = start_index + p.numel()
+                param_sample = sample[start_index:end_index].reshape(p.shape)
+                init_values.append(torch.from_numpy(param_sample))
+                start_index = end_index
+            init_values_list.append(init_values)
 
+        return init_values_list
+
+    '''
+    def latin_hypercube_sampling():
+        n_params = sum(p.numel() for p in SimpleNN().parameters())
+        lhs_samples = pyDOE2.lhs(n_params, samples=num_workers, criterion='maximin')
+        lhs_samples = lhs_samples * 2 - 1  # scale to [-1, 1]
+        
+        init_values_list = []
+        for sample in lhs_samples:
+            init_values = []
+            start_index = 0
+            for p in SimpleNN().parameters():
+                end_index = start_index + p.numel()
+                param_sample = sample[start_index:end_index].reshape(p.shape)
+                init_values.append(param_sample)
+                start_index = end_index
+            init_values_list.append(init_values)
+
+        return init_values_list
+    '''
+    '''
+    def latin_hypercube_sampling():
+        n_params = sum(p.numel() for p in SimpleNN().parameters())
+        lhs_samples = pyDOE2.lhs(n_params, samples=num_workers, criterion='maximin')
+        lhs_samples = lhs_samples * 2 - 1  # scale to [-1, 1]
+        
+        init_values = []
+        start_index = 0
+        for p in SimpleNN().parameters():
+            end_index = start_index + p.numel()
+            sample = lhs_samples[:, start_index:end_index].reshape(p.shape)
+            init_values.append(sample)
+            start_index = end_index
+
+        return init_values
+    '''
+    '''
+    def latin_hypercube_sampling():
+        n_params = sum(p.numel() for p in SimpleNN().parameters())
+        lhs_samples = pyDOE2.lhs(n_params, samples=num_workers, criterion='maximin')
+        lhs_samples = lhs_samples * 2 - 1  # scale to [-1, 1]
+        return  [sample.reshape((1, -1)) for sample in lhs_samples]#[list(sample.reshape((1, -1))) for sample in lhs_samples]
+    '''
     def adaptive_sampling():
         def loss_function(params):
             init_values = [param.reshape(p.shape) for param, p in zip(params, SimpleNN().parameters())]
@@ -288,7 +351,18 @@ def main(to_demo=True):
         best_params = result.x
 
         return [best_params.reshape(p.shape) for p in SimpleNN().parameters()]
+    '''
+    def adaptive_sampling():
+        def loss_function(params):
+            init_values = [param.reshape(p.shape) for param, p in zip(params, SimpleNN().parameters())]
+            return simulate_parallel_loss(SimpleNN(), init_values, train_loader, device)
 
+        bounds = [(-1, 1)] * sum(p.numel() for p in SimpleNN().parameters())
+        result = minimize(loss_function, x0=np.zeros(len(bounds)), bounds=bounds, method='L-BFGS-B')
+        best_params = result.x
+
+        return [best_params.reshape(p.shape) for p in SimpleNN().parameters()]
+    '''
     def bayesian_optimization():
         def loss_function(params):
             init_values = [param.reshape(p.shape) for param, p in zip(params, SimpleNN().parameters())]
@@ -303,9 +377,9 @@ def main(to_demo=True):
     methods = [
         ('Single Random Initialization', single_random_initialization),
         ('Uniform Sampling', uniform_sampling),
-        ('LHS', latin_hypercube_sampling),
         ('Adaptive Sampling', adaptive_sampling),
         ('Bayesian Optimization', bayesian_optimization),
+        ('LHS', latin_hypercube_sampling),
     ]
 
     losses = {}
@@ -319,9 +393,9 @@ def main(to_demo=True):
         loss_curve = run_simulation(num_workers, init_values, train_loader, device, num_epochs,to_demo)
         losses[method_name] = loss_curve
 
-    # Plot loss curves
-    plt.figure(figsize=(12, 6))
-    for method_name, loss_curve in losses.items():
+        #Plot loss curves
+        plt.figure(figsize=(12, 6))
+
         plt.plot(loss_curve, label=method_name)
 
         plt.xlabel('Epoch')
@@ -337,6 +411,7 @@ def main(to_demo=True):
         
         plt.savefig(os.path.join(results_dir, datetime.date.today().strftime("%B %d, %Y")+method_name+'loss_curves.png'))
         plt.show()
+
 
 '''
 def main():
