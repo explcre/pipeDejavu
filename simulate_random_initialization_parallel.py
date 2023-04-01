@@ -27,10 +27,10 @@ class SimpleNN(nn.Module):
             self.fc1 = nn.Linear(32 * 8 * 8, 64)
             self.fc2 = nn.Linear(64, 10)
         else:
-            self.conv1 = nn.Conv2d(3, 32, 3, padding=1)
-            self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
-            self.fc1 = nn.Linear(64 * 8 * 8, 128)
-            self.fc2 = nn.Linear(128, 10)
+            self.conv1 = nn.Conv2d(3, 16, 3, padding=1)
+            self.conv2 = nn.Conv2d(16, 32, 3, padding=1)
+            self.fc1 = nn.Linear(32 * 8 * 8, 64)
+            self.fc2 = nn.Linear(64, 10)
 
         self.relu1 = nn.ReLU(inplace=True)
         self.pool = nn.MaxPool2d(2, 2)
@@ -252,6 +252,18 @@ def run_simulation(num_workers, sampling_method, train_loader, device, num_epoch
         losses.append(loss_curve)
     return losses
 '''
+def to_csv(data):
+    with open('table1.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        header = ['Method', 'Iteration 1', 'Iteration 2', 'Iteration 3', 'Iteration 4', 'Iteration 5', 'Iteration 6', 'Iteration 7', 'Iteration 8', 'Iteration 9', 'Iteration 10', 'Iteration 11', 'Iteration 12', 'Iteration 13', 'Iteration 14', 'Iteration 15', 'Iteration 16', 'Iteration 17', 'Iteration 18', 'Iteration 19', 'Iteration 20', 'Iteration 21', 'Iteration 22', 'Iteration 23', 'Iteration 24', 'Iteration 25', 'Iteration 26', 'Iteration 27', 'Iteration 28', 'Iteration 29', 'Iteration 30']
+
+        writer.writerow(header)
+
+        for method in data:
+            row = [method]
+            for i in range(len(data[method])):
+                row += [str(num) for num in data[method][i]]
+            writer.writerow(row)
 
 def main(to_demo=True):
         # Prepare the dataset
@@ -284,6 +296,11 @@ def main(to_demo=True):
         model = SimpleNN()
         init_values = [p.data.clone().numpy() for p in model.parameters()]# originally no .numpy()
         return init_values
+    
+    def uniform_init():
+        model = SimpleNN()
+        init_values = [p.data.clone().numpy() for p in model.parameters()]# originally no .numpy()
+        return nn.init.uniform_(init_values)
     
     def latin_hypercube_sampling():
         n_params = sum(p.numel() for p in SimpleNN().parameters())
@@ -398,6 +415,7 @@ def main(to_demo=True):
         losses[method_name] = loss_curve
 
     print(losses)
+    to_csv(losses)
     # Plot loss curves
     plt.figure(figsize=(12, 6))
     for method_name, loss_curve in losses.items():
@@ -445,4 +463,4 @@ def main():
         print(f"Mean loss for {name}: {mean_loss}")
 '''
 if __name__ == "__main__":
-    main(to_demo=True)
+    main(to_demo=False)
