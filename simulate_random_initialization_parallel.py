@@ -17,7 +17,7 @@ import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import os
 from tqdm import tqdm
-
+import datetime
 class SimpleNN(nn.Module):
     def __init__(self, to_demo=True):
         super(SimpleNN, self).__init__()
@@ -324,18 +324,19 @@ def main(to_demo=True):
     for method_name, loss_curve in losses.items():
         plt.plot(loss_curve, label=method_name)
 
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.title('Loss Curves for Different Initialization Methods')
-    plt.legend()
-    plt.grid()
-    plt.show()
-    results_dir = './results'
-    if not os.path.exists(results_dir):
-        os.makedirs(results_dir)
-
-    plt.savefig(os.path.join(results_dir, 'loss_curves.png'))
-    plt.show()
+        plt.xlabel('Epoch')
+        plt.ylabel('Loss')
+        plt.title('Loss Curves for Different Initialization Methods')
+        plt.legend()
+        plt.grid()
+        plt.show()
+        results_dir = './results'
+        if not os.path.exists(results_dir):
+            os.makedirs(results_dir)
+        
+        
+        plt.savefig(os.path.join(results_dir, datetime.date.today().strftime("%B %d, %Y")+method_name+'loss_curves.png'))
+        plt.show()
 
 '''
 def main():
