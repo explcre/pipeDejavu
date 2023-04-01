@@ -280,7 +280,7 @@ def main(to_demo=True):
 
 
     def uniform_sampling():
-        return [np.random.uniform(-1, 1, p.numel()).reshape(p.shape) for p in SimpleNN().parameters()]
+        return [np.random.uniform(0, 1, p.numel()).reshape(p.shape) for p in SimpleNN().parameters()]
     
     def latin_hypercube_sampling():
         n_params = sum(p.numel() for p in SimpleNN().parameters())
