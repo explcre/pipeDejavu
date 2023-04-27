@@ -85,8 +85,9 @@ def extract_data(dataset, key):
 
 # Function to filter out infinity or large values from X and y
 def filter_data(X, y):
-    finite_mask = np.isfinite(y)
-    return X[finite_mask], y[finite_mask]
+    X_flat = np.ravel(X)
+    overflow_mask = (X_flat < np.finfo(np.float32).max) & (y < np.finfo(np.float32).max)
+    return X[overflow_mask], y[overflow_mask]
 
 # Function to apply log transformation to y values
 def apply_log_transform(y):
@@ -117,12 +118,14 @@ for key in data.keys():
             X, y = extract_data(attribute_dict, config)
 
             # Filter out infinity or large values from X and y
-            #X, y = filter_data(X, y)
+            X, y = filter_data(X, y)
              # Apply log transformation to y values
-            #y = apply_log_transform(y)#added
+            y = np.where(np.isnan(y), np.nanmean(y), y)
              # Initialize the scaler
             scaler = StandardScaler()
-
+            if X.size == 0 or y.size == 0:
+                print(f"Empty arrays encountered for {key}, {attr}, {config}. Skipping...")
+                continue
 
             y_norm = scaler.fit_transform(y.reshape(-1, 1)).reshape(-1)
              # Linear Regression
