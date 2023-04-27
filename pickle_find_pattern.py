@@ -157,7 +157,7 @@ for key in data.keys():
 
         plt.xscale("log")
         plt.yscale("log")
-        plt.xlabel("Ranks")
+        plt.xlabel("Number of Parameters")
         plt.ylabel("Cost")
 
         # Move the legend outside of the plot
