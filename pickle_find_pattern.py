@@ -41,12 +41,14 @@ plt.xscale("log")
 plt.yscale("log")
 plt.xlabel("Ranks")
 plt.ylabel("Cost")
-plt.legend()
+
+# Move the legend outside of the plot
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+
 plt.title("All Gather Cost vs Ranks for Different Configurations")
 
 # Save the plot
-plt.savefig("all_gather_cost_vs_ranks.png")
+plt.savefig("all_gather_cost_vs_ranks.png", bbox_inches='tight')
 
 # Show the plot
 plt.show()
-
