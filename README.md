@@ -32,6 +32,7 @@
 
 
 # hardware-aware scheduling
+notion: https://www.notion.so/hardware-aware-scheduling-487793b3a1874389b3f8a57c848b23ae
 
 googledoc:[https://docs.google.com/document/d/1qON658QVbS2n_xLyuYeIiXB8Oqp0kjT4eKmmuKapV2A/edit?usp=sharing](https://docs.google.com/document/d/1qON658QVbS2n_xLyuYeIiXB8Oqp0kjT4eKmmuKapV2A/edit?usp=sharing)
 
