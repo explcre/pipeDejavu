@@ -1,4 +1,4 @@
-# pipeDejavu
+# pipeDejavu: Hardware-aware Latency Predictable, Differentiable Search for Faster Config and Convergence of Distributed ML Pipeline Parallelism
 
 ## How to run the code
 1. Predictive Model saving pre-profiling time of Alpa.
