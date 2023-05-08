@@ -34,20 +34,30 @@ googledoc:[https://docs.google.com/document/d/1qON658QVbS2n_xLyuYeIiXB8Oqp0kjT4e
 
 overleaf: [https://www.overleaf.com/6194344811knzgsftfhnhm](https://www.overleaf.com/6194344811knzgsftfhnhm)
 
-github:[explcre/pipeDejavu (github.com)](https://github.com/explcre/pipeDejavu)
+github: [explcre/pipeDejavu (github.com)](https://github.com/explcre/pipeDejavu)
 
 gpu use plan: [https://docs.google.com/document/d/1vT9A8O0NoQhAmFYVq_GjZyjY7yW2SIqbmUGdQxoBLOU/edit?usp=sharing](https://docs.google.com/document/d/1vT9A8O0NoQhAmFYVq_GjZyjY7yW2SIqbmUGdQxoBLOU/edit?usp=sharing)
 
-1. **As for heterogenous pipeline parallelism**, we find we can look into simulator in the flexflow, make it one step predict model , based on communication cost and other parameters. And perhaps we can also plug it into alpa.(while alpa only assume network inside machine is much larger than between machines, we can use this simulator to meet situation where network doesn’t follow this condition)
+1. **As for heterogenous pipeline parallelism(predict latency model)**, we find we can look into simulator in the flexflow, make it one step predict model , based on communication cost and other parameters. And perhaps we can also plug it into alpa.(while alpa only assume network inside machine is much larger than between machines, we can use this simulator to meet situation where network doesn’t follow this condition)
 (another difference is search algorithm, flexflow use mcmc, alpa use dp)
     
     
     “HetPipe: Enabling Large DNN Training on (Whimpy) Heterogeneous GPU Clusters through Integration of Pipelined Model Parallelism and Data Parallelism” Maybe propose a way for heterogenous circumstances.
     Indy opinion: take a step back and think of new ways of combining pipeline parallelism and data parallelism.
     
-    1. [用ILP和DP自动探索DL分布式策略——Alpa - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/487588274)
-    2. [Alpa: Automated Model-Parallel Deep Learning – Google AI Blog (googleblog.com)](https://ai.googleblog.com/2022/05/alpa-automated-model-parallel-deep.html)
-    3. [https://alpa.ai/tutorials/perf_tuning_guide.html](https://alpa.ai/tutorials/perf_tuning_guide.html) 这里最后说https://github.com/alpa-projects/alpa/blob/main/tests/runtime/test_debug_info.py可以看他的runtime跑的情况debug，之后也许会用到。但貌似他说他没有一个很好visualization tool
+    1. [Learned TPU Cost Model for XLA Tensor Programs – Google Research](https://research.google/pubs/pub49859/) [learned_tpu_kaufman_2019.pdf (mlforsystems.org)](http://mlforsystems.org/assets/papers/neurips2019/learned_tpu_kaufman_2019.pdf)
+        
+        xla: 6 Future Work
+        While early results are promising, this is a work in progress. For the next steps, we would like to try the following ideas. First, train and evaluate on a broader dataset of XLA graphs to improve accuracy and better understand the model’s ability to generalize. Second, experiment with modifications to the model that encourage generalization between kernels with the same computation graph but different tensor shapes (similar to the approach used in Halide to learn coefficients for hand-engineered performance counters [2]). Third, extend the model to evaluate an XLA graph that varies along other
+        axes, such as kernel’s tile size and layout assignment. Finally, we would like to improve performance on large kernels in particular.
+        
+    2. [osdi22-unger.pdf (usenix.org)](https://www.usenix.org/system/files/osdi22-unger.pdf)Unity: Accelerating DNN Training Through Joint
+    Optimization of Algebraic Transformations and Parallelization这是flexflow最新paper, 把代数变换也和parallel策略一起优化
+    3. [Beyond Data and Model Parallelism for Deep Neural Networks (stanford.edu)](https://cs.stanford.edu/~zhihao/papers/sysml19a.pdf)可以借鉴flexflow里面simulator
+    4. [用ILP和DP自动探索DL分布式策略——Alpa - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/487588274)
+    5. [Alpa: Automated Model-Parallel Deep Learning – Google AI Blog (googleblog.com)](https://ai.googleblog.com/2022/05/alpa-automated-model-parallel-deep.html)
+    6. [https://alpa.ai/tutorials/perf_tuning_guide.html](https://alpa.ai/tutorials/perf_tuning_guide.html) 这里最后说https://github.com/alpa-projects/alpa/blob/main/tests/runtime/test_debug_info.py可以看他的runtime跑的情况debug，之后也许会用到。但貌似他说他没有一个很好visualization tool
+    7. 在dp之前直接传给他profiling结果的是alpa/pipeline_parallel/stage_profiling.py里面的get_compute_cost()函数，如果要优化profiling可能就是仔细看他里面 tic toc,时间测了哪些。感觉可以仔细看看alpa/pipeline_parallel/stage_profiling.py里面的get_compute_cost()函数，如果能单机跑alpa的话，可以测一下这块跑了多久时间，如果不去profiling直接赋值，会节省多少时间
 2. **differentiable parallel configuration search space**
 Can we use differentiable search algorithm like “DARTS: Differential Neural Architecture Search” to search the optimal of parallel plan?
 The existing optimization of auto parallel strategy is mostly MCMC or Dynamic Programming.
@@ -58,6 +68,41 @@ That is, the n alternative discrete max of the original search for the optimal n
     Indy’s: Intriguing idea. May not beat existing algorithm at first when implement at first time. Can start implement small part, do some experiments. Show some minimum doable results that it may work.
     
     1. [Darts代码解读 - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/143574526)
+    2. Differentiable Dynamic Programming for
+    Structured Prediction and Attention [1802.03676.pdf (arxiv.org)](https://arxiv.org/pdf/1802.03676.pdf)
+    3. [Intuitive Explanation of Differentiable Architecture Search (DARTS) | by Shivam Kaushik | Towards Data Science](https://towardsdatascience.com/intuitive-explanation-of-differentiable-architecture-search-darts-692bdadcc69c)
+    4. Differentiable Neural Architecture Search in Equivalent Space with Exploration Enhancement [9a96a2c73c0d477ff2a6da3bf538f4f4-Paper.pdf (neurips.cc)](https://proceedings.neurips.cc/paper/2020/file/9a96a2c73c0d477ff2a6da3bf538f4f4-Paper.pdf)
+    5. 给gpt4喂了stage_construction.py代码以及一堆darts相关资料之后他给的回答，写了初步代码[Shared Conversation (chatgpt4google.com)](https://webapp.chatgpt4google.com/s/NTEzMTI5)
+    6. gpt4 输入了我们differentiable search space之后对时间复杂度的分析[Shared Conversation (chatgpt4google.com)](https://webapp.chatgpt4google.com/s/MTU3Mjg2)
+    7. alpa/pipeline_parallel/stage_construction.py我理解是dp在的地方。里面616行开始，AutoStageOption,就是他，自动去搜的代码应该是。311行training_dp()就是里面具体dp算法。235行training_dp_imp()更核心一点
+    8. [Euphoria16/Shapley-NAS: update README.md (github.com)](https://github.com/euphoria16/shapley-nas) [Shapley-NAS: Discovering Operation Contribution for Neural Architecture Search (thecvf.com)](https://openaccess.thecvf.com/content/CVPR2022/papers/Xiao_Shapley-NAS_Discovering_Operation_Contribution_for_Neural_Architecture_Search_CVPR_2022_paper.pdf)  这个是NAS 的SOTA,用game theory里面sharpley value 去预测哪个operation贡献大
+    9. [krzysztofrusek/net2vec: This repository is a collection of machine learning models for computer networks. (github.com)](https://github.com/krzysztofrusek/net2vec)  
+        1. [Message Passing](https://github.com/krzysztofrusek/net2vec/blob/master/mpnn)vanilla Graph Neural Network
+        2. [RouteNet](https://github.com/krzysztofrusek/net2vec/blob/master/routenet) - A new neural architecture designed for neural understanding of routing in the network.
+        3. [Routing by Backprop](https://github.com/krzysztofrusek/net2vec/blob/master/routing_by_backprop) - Differentiable surrogate for Dijkstra algorithm.
+        4. [HeterPS: Distributed Deep Learning With Reinforcement Learning Based Scheduling in Heterogeneous Environments (arxiv.org)](https://arxiv.org/pdf/2111.10635.pdf)
+    10. [HeterPS: Distributed Deep Learning With Reinforcement Learning Based Scheduling in Heterogeneous Environments (arxiv.org)](https://arxiv.org/pdf/2111.10635.pdf)
+    11. [2209.10380.pdf (arxiv.org)](https://arxiv.org/pdf/2209.10380.pdf)Fast Traffic Engineering by Gradient Descent with
+    Learned Differentiable Routing
+    12. [2110.02781v1.pdf (arxiv.org)](https://arxiv.org/pdf/2110.02781v1.pdf) FTPipeHD: A Fault-Tolerant Pipeline-Parallel
+    Distributed Training Framework
+    for Heterogeneous Edge Devices
+    13. [2110.14895.pdf (arxiv.org)](https://arxiv.org/pdf/2110.14895.pdf) Pipeline Parallelism for Inference on Heterogeneous Edge Computing
+    14. [osdi20-jiang.pdf (usenix.org)](https://www.usenix.org/system/files/osdi20-jiang.pdf) A Unified Architecture for Accelerating Distributed
+    DNN Training in Heterogeneous GPU/CPU Clusters
+    15. [Optimizing Distributed Training Deployment in Heterogeneous GPU Clusters (acm.org)](https://dl.acm.org/doi/pdf/10.1145/3386367.3432728)   heterog gnn   https://github.com/eval-submissions/HeteroG 用GNN学习placement,超过了hetpipe
+        1. [atc20-park.pdf (usenix.org)](https://www.usenix.org/system/files/atc20-park.pdf)HetPipe: Enabling Large DNN Training on (Whimpy) Heterogeneous GPU Clusters through Integration of Pipelined Model Parallelism and Data Parallelism 
+        2. 
+            
+            ![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/ec3835b6-3a02-47e6-b485-9f17ebefd3ce/Untitled.png)
+            
+            ![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/67bbce77-bd45-45c9-aae4-83515e13fc3b/Untitled.png)
+            
+    16. [1906.01736.pdf (arxiv.org)](https://arxiv.org/pdf/1906.01736.pdf)  Distributed Training with Heterogeneous Data:
+    Bridging Median- and Mean-Based Algorithms
+    
+    []()
+    
 3. **Another dimension: parallel random initialization for faster training loss convergence**
 I also thought of a problem, distribution can also be viewed from another angle, the initial randomization. Gradient descent can be imagined as a rugged hill looking for the minimum value. Gradient descent is the ball rolling down the steepest place. The intuition of data parallel is to assign n workers to look at n small directions at a random initial point, then combine the gradients and then gradient descent. 
 But at some points of the initial randomization, the loss may be very low at some points at the beginning, and the gradient descent at those points may quickly reach the minimum. Now the general training of neural networks is just randomization once at the beginning instead of sampling many times. At the beginning of parallel, we can sample those randomization points in parallel at the beginning. We can select the ones with small loss and large gradients while sampling. 
@@ -101,7 +146,35 @@ Indy’s opinion: Intriguing as well. Simpler than previous idea. Be careful tha
             [Delving Deep into Rectifiers: Surpassing Human-Level Performance on ImageNet Classification](http://arxiv.org/abs/1502.01852v1)
             
         
-        d. [torch.nn.init — PyTorch 2.0 documentation](https://pytorch.org/docs/stable/nn.init.html)
+        d. [torch.nn.init — PyTorch 2.0 documentation](https://pytorch.org/docs/stable/nn.init.html) 这些有很多种init方法，后续可以并行搜索一下对于模型哪个更好
+        
+        e. random initialization gpt4的回答帮助写demo代码    [https://webapp.chatgpt4google.com/s/ODQ4NzIz](https://webapp.chatgpt4google.com/s/ODQ4NzIz)
+        
+        f. [Gradient Descent in 3D Visualization | Machine Learning | Data Science - YouTube](https://www.youtube.com/watch?v=My7buNDH50k)
+        
+        g.[Visualizing Gradient Descent in 3D | Kaggle](https://www.kaggle.com/code/christianwittmann/visualizing-gradient-descent-in-3d)
+        
+        h. [Entropy | Free Full-Text | A Neural Network MCMC Sampler That Maximizes Proposal Entropy (mdpi.com)](https://www.mdpi.com/1099-4300/23/3/269#:~:text=Markov%20Chain%20Monte%20Carlo%20%28MCMC%29%20methods%20sample%20from,with%20neural%20networks%20can%20potentially%20improve%20their%20efficiency.)
+        
+        1. if network is deep enough, all the local minima have similar loss function alue as the global loss function value [[1605.07110] Deep Learning without Poor Local Minima (arxiv.org)](https://arxiv.org/abs/1605.07110)
+        
+        j. can we use evolution algorithm to filter the bad loss state/hyperparameter/randomized initialization
+        
+        k. how to split data, if data splited on each machine is alike, a node for cat , a node for dog, can the gradient descent be less or more conflict?
+        
+        l.[755acd0c7c07180d78959b6d89768207-Paper-Conference.pdf (neurips.cc)](https://proceedings.neurips.cc/paper_files/paper/2022/file/755acd0c7c07180d78959b6d89768207-Paper-Conference.pdf)
+        
+        On Scrambling Phenomena
+        for Randomly Initialized Recurrent Networks
+        
+        m.[2010.01179.pdf (arxiv.org)](https://arxiv.org/pdf/2010.01179.pdf)
+        
+        The Surprising Power of Graph Neural Networks with
+        Random Node Initialization
+        
+        n. parallel tune batch size parameter
+        
+        o. use umap to visualize the distribution of random initialization , move the points ,then inverse.
         
 4. **Fault-tolerance for model parallel/pipeline parallel , alpa**
     
@@ -109,6 +182,93 @@ Indy’s opinion: Intriguing as well. Simpler than previous idea. Be careful tha
     
     While is there any similar fault-tolerance analysis for model/pipeline parallel, and alpa like strategy?
     
+    1. [PipeDream: Fast and Efficient Pipeline Parallel DNN Training -0.22in (arxiv.org)](https://arxiv.org/pdf/1806.03377.pdf)
+    2. [https://arxiv.org/pdf/1805.10032.pdf](https://arxiv.org/pdf/1805.10032.pdf) 之前说的zeno，他假设data parallel会有些机器传的有问题的梯度，然后他提出一种方法我理解主要思想就是把梯度对现在的影响从小到大排列取影响最小的k个取均值梯度下降。我感觉现在没怎么看到model parallel/pipeline parallel的fault tolerance的分析。感觉也可以类似提出，对于分布在某个机器的那几层模型，如果有坏的梯度的假设，可以设计容错性算法，更新对那一层模型从小到大排列影响最小的k个取平均值梯度下降
+    3. [Shared Conversation (chatgpt4google.com)](https://webapp.chatgpt4google.com/s/MzY0MDg3)
+    4. 
+    
+    Algorithm
+    
+    1. Initialize the weights of each machine $ w_i=1 / N $.
+    2. Compute the local gradients $g_i$ on each machine.
+    3. Compute the overall gradient $g$ as the weighted sum of the local gradients:
+    $$
+    g=\sum_{i=1}^N w_i g_i
+    $$
+    4. Compute the suspicion level of each machine $s_i$ :
+    $$
+    s_i=\left\|g_i-g\right\|
+    $$
+    5. Update the weight of each machine according to its suspicion level:
+    $$
+    w_i=\frac{\alpha}{\alpha+s_i}
+    $$
+    6. Sort the machines based on their weight in ascending order.
+    7. Identify the $\mathrm{k}$ machines with the least influence on the overall gradient.
+    8. Replace the gradients of the identified machines with the average of the remaining gradients:
+    $$
+    \hat{g}*i=\frac{\sum*{j=1}^{N-k} g_j}{N-k}
+    $$
+    9. Compute the overall gradient $\$ g \$$ using the updated gradients:
+    $$
+    g=\sum_{i=1}^N w_i \hat{g}_i
+    $$
+    10. Update the model parameters using the overall gradient.
+    11. Repeat steps 2-10 until convergence.
+    
+5. **Fault-tolerance for Neural Network**
+    1. assumption: neural network have k number of nodes/layer/data/…, **added/deleted/go wrong**, whether it will keep its performance/accuracy.
+    2. [IEEE Xplore Full-Text PDF:](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8013784)Fault and Error Tolerance in Neural Networks: A Review
+        
+        ![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/e95a51cd-0f51-4a27-b6f5-3f86cb9f70ac/Untitled.png)
+        
+    
+6. How to distribute data/model:
+    1. if the policy to distribute a batch of data is carefully designed, or similar label or different label,(using some clustering method), whether we can decrease the gradient conflict between different batches of data or better fit into the data parallel situation? Whether we can use a metric based on model loss and data distribution to decide how to distribute the data. Will we have gain from just randomly assigned data?
+        1. positive/negetive label distribution. multi-label distribution. regression data value distribution.
+    2. data distribution can change, a set of data can be piggy backed to another machine, if it find this way can better converge during distributed training. The data distribution policy can evolve through time, based on some metric.
+    3. 
+        
+        Distributed Training with Heterogeneous Data:
+        Bridging Median- and Mean-Based Algorithms
+        
+        [2109.03194.pdf (arxiv.org)](https://arxiv.org/pdf/2109.03194.pdf)
+        
+        On the Convergence of Decentralized Adaptive Gradient
+        Methods
+        
+    4. [pan-etal.arxiv2016cyclades1.pdf (berkeley.edu)](https://amplab.cs.berkeley.edu/wp-content/uploads/2016/08/pan-etal.arxiv2016cyclades1.pdf)  CYCLADES: Conflict-free Asynchronous Machine Learning
+        1. 把计算图没冲突的分组。在dl中，前向后向传播作为一个epoch的计算图，是否也能找出计算图无冲突或者冲突比较小的分组。
+    5. use umap to visualize the distribution of data distribution , move the points ,then inverse. assign data with more class/umap diversity.
+    6. [621461af90cadfdaf0e8d4cc25129f91-Paper.pdf (neurips.cc)](https://proceedings.neurips.cc/paper_files/paper/2019/file/621461af90cadfdaf0e8d4cc25129f91-Paper.pdf#:~:text=Deep%20learning%20algorithms%20can%20fare%20poorly%20when%20the,and%20their%20combination%20achieves%20even%20better%20performance%20gains1.)Learning Imbalanced Datasets with Label-Distribution-Aware Margin Loss
+    7. [1906.01736.pdf (arxiv.org)](https://arxiv.org/pdf/1906.01736.pdf)  Distributed Training with Heterogeneous Data:
+    Bridging Median- and Mean-Based Algorithms
+7. Eventually consistent→eventually converge:
+    1. the machine can fail or change, the network topology or congestion may change when training, but eventually this model will converge. How to prove/ realize this feature? Can we use similar thoughts from eventually consistent?
+8. Another communication topology:
+    1. similar to parameter server, but server is rolling.
+        1. a→{b,c,d,e,f},    {a,c,d,e,f}→ b  , b→{a,c,d,e,f} , {a,b,d,e,f}→ c. 
+    2. It can avoid single point of failure. when detect failure, skip that machine  
+    3. [分布式训练 – 第3篇 - 分布式训练常用的集合通信及其通信原语 - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/493092647?utm_id=0)
+9. gossip style distributed training
+    1. randomly choose k nodes to send gradient or gather gradient.
+10. heterogeneous,if gpu memory is not same, computational power not same, how to schedule?
+    
+    A Unified Architecture for Accelerating Distributed DNN Training in Heterogeneous GPU/CPU Clusters
+    
+    [Heterogeneity-Aware Distributed Machine Learning Training via Partial Reduce (acm.org)](https://dl.acm.org/doi/pdf/10.1145/3448016.3452773)
+    
+    [Optimizing Distributed Training Deployment in Heterogeneous GPU Clusters (acm.org)](https://dl.acm.org/doi/pdf/10.1145/3386367.3432728) 用GNN学习placement,超过了hetpipe
+    
+    [atc20-park.pdf (usenix.org)](https://www.usenix.org/system/files/atc20-park.pdf)
+    
+    HetPipe: Enabling Large DNN Training on (Whimpy) Heterogeneous GPU Clusters through Integration of Pipelined Model Parallelism and Data Parallelism 
+    
+    ![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/8a022957-1746-4ef6-8199-81c895259f59/Untitled.png)
+    
+11. distributed ml simulation playground
+    1. it taks resourses to simulate the distributed training, whether we can provide a simulation playground so that the distributed training experiment can be done on one machine.
+12. reading code, nlp, to predict performance
 
 ### Kaiyang Chen
 
