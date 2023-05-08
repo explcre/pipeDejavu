@@ -2,30 +2,33 @@
 
 ## How to run the code
 1. Predictive Model saving pre-profiling time of Alpa.
-To check the content in the `prof_database.pkl` file
-You can run
-```
-python ./pickle_display_result.py
-```
 
-To check the predictive model(fitting a linear regression) for pre-profiling database,
-You can run
-```
-python ./pickle_find_pattern.py
-```
+    To check the content in the `prof_database.pkl` file
+    You can run
+    ```
+    python ./pickle_display_result.py
+    ```
 
-2.Differentiable Search Space
-To check the result of Differentiable Search method comparing with Dynamic Programming , please check:
+    To check the predictive model(fitting a linear regression) for pre-profiling database,
+    You can run
+    ```
+    python ./pickle_find_pattern.py
+    ```
 
-https://github.com/explcre/pipeDejavu/blob/main/auto_pipeline_slicing_dp_ipynb-copy.ipynb
+2. Differentiable Search Space
+
+    To check the result of Differentiable Search method comparing with Dynamic Programming , please check:
+
+    https://github.com/explcre/pipeDejavu/blob/main/auto_pipeline_slicing_dp_ipynb-copy.ipynb
 
 
 
-2.Parallel Random Initialization
-To run the simulation program for parallel random initialization, please run:
-```
-python ./simulate_random_initialization_parallel.py --to_demo False --num_workers 8 --epochs 100 --demo_epochs 20
-```
+3. Parallel Random Initialization
+
+    To run the simulation program for parallel random initialization, please run:
+    ```
+    python ./simulate_random_initialization_parallel.py --to_demo False --num_workers 8 --epochs 100 --demo_epochs 20
+    ```
 
 
 # hardware-aware scheduling
